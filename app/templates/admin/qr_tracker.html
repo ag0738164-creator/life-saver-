@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}QR Code Blood Unit Tracking - Life Saver{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <span class="badge bg-danger mb-1"><i class="bi bi-qr-code-scan me-1"></i>Digital Cold-Chain Tracking</span>
+            <h2 class="fw-bold mb-0">QR Code-Based Blood Unit Tracking</h2>
+            <p class="text-muted small mb-0">Individual blood bag identification, expiry surveillance, and chain-of-custody verification.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.qr_scanner') }}" class="btn btn-outline-danger">
+                <i class="bi bi-camera me-1"></i> Open QR Scanner / Search
+            </a>
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#registerUnitModal">
+                <i class="bi bi-plus-circle me-1"></i> Register Sterile Blood Bag
+            </button>
+        </div>
+    </div>
+
+    <!-- Metric Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold">TOTAL BAGS ENROLLED</div>
+                        <div class="fs-3 fw-bold text-dark mt-1">{{ total_units_count }}</div>
+                        <div class="small text-muted mt-1">Sterile QR tagged units</div>
+                    </div>
+                    <div class="stat-icon bg-light text-primary">
+                        <i class="bi bi-qr-code"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold">IN COLD STORAGE</div>
+                        <div class="fs-3 fw-bold text-success mt-1">{{ in_storage_count }}</div>
+                        <div class="small text-success mt-1">Maintained at 2&deg;C - 6&deg;C</div>
+                    </div>
+                    <div class="stat-icon bg-light text-success">
+                        <i class="bi bi-snow2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold">EXPIRED / DISCARD RISK</div>
+                        <div class="fs-3 fw-bold text-danger mt-1">{{ expired_count }}</div>
+                        <div class="small text-danger mt-1">Exceeded 35/42 days limit</div>
+                    </div>
+                    <div class="stat-icon bg-light text-danger">
+                        <i class="bi bi-hourglass-bottom"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold">SAFETY SCREENING</div>
+                        <div class="fs-3 fw-bold text-info mt-1">100%</div>
+                        <div class="small text-muted mt-1">HIV / HBV / HCV non-reactive</div>
+                    </div>
+                    <div class="stat-icon bg-light text-info">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4 p-3 bg-white">
+        <form method="GET" action="{{ url_for('admin.qr_tracker') }}" class="row g-2 align-items-center">
+            <div class="col-md-3">
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="All" {% if status_filter == 'All' %}selected{% endif %}>All Unit Statuses</option>
+                    <option value="In Storage" {% if status_filter == 'In Storage' %}selected{% endif %}>In Cold Storage</option>
+                    <option value="Reserved" {% if status_filter == 'Reserved' %}selected{% endif %}>Reserved for Requisition</option>
+                    <option value="Issued" {% if status_filter == 'Issued' %}selected{% endif %}>Issued to Hospital</option>
+                    <option value="Quarantined" {% if status_filter == 'Quarantined' %}selected{% endif %}>Quarantined</option>
+                    <option value="Expired" {% if status_filter == 'Expired' %}selected{% endif %}>Expired</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="blood_group" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All Blood Groups</option>
+                    {% for bg in blood_groups %}
+                        <option value="{{ bg }}" {% if blood_group_filter == bg %}selected{% endif %}>{{ bg }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% if status_filter != 'All' or blood_group_filter %}
+                <div class="col-auto">
+                    <a href="{{ url_for('admin.qr_tracker') }}" class="btn btn-outline-secondary btn-sm">Clear Filters</a>
+                </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Blood Units Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+        {% if units %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-uppercase">
+                        <tr>
+                            <th class="ps-3">Unit Barcode ID</th>
+                            <th>Group</th>
+                            <th>Component</th>
+                            <th>Volume</th>
+                            <th>Collection Date</th>
+                            <th>Expiry Date</th>
+                            <th>Safety Testing</th>
+                            <th>Vault Location</th>
+                            <th>Status</th>
+                            <th class="text-end pe-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in units %}
+                            <tr class="{% if u.is_expired and u.status == 'In Storage' %}table-danger bg-opacity-25{% endif %}">
+                                <td class="ps-3">
+                                    <div class="fw-bold font-monospace text-dark d-flex align-items-center gap-1">
+                                        <i class="bi bi-qr-code text-danger"></i> {{ u.unit_number }}
+                                    </div>
+                                    <div class="text-muted small">Donor ID: #{{ u.donor_id or 'Walk-in' }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-danger border fs-6 fw-bold">{{ u.blood_group }}</span>
+                                </td>
+                                <td>
+                                    <span class="small fw-semibold text-dark">{{ u.component_type }}</span>
+                                </td>
+                                <td>{{ u.volume_ml }} ml</td>
+                                <td class="small">{{ u.collection_date | format_date }}</td>
+                                <td>
+                                    <div class="small fw-bold {% if u.is_expired %}text-danger{% elif u.days_until_expiry <= 5 %}text-warning{% else %}text-success{% endif %}">
+                                        {{ u.expiry_date | format_date }}
+                                    </div>
+                                    <div class="text-muted small" style="font-size: 0.75rem;">
+                                        {% if u.is_expired %}
+                                            <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle"></i> EXPIRED</span>
+                                        {% else %}
+                                            {{ u.days_until_expiry }} days left
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success-subtle text-success border border-success small" title="{{ u.screening_results }}">
+                                        <i class="bi bi-patch-check-fill me-1"></i>Passed
+                                    </span>
+                                </td>
+                                <td class="small text-muted">{{ u.storage_location }}</td>
+                                <td>
+                                    <span class="badge {{ u.status_badge_class }}">{{ u.status }}</span>
+                                </td>
+                                <td class="text-end pe-3">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('admin.unit_label', unit_id=u.id) }}" class="btn btn-outline-danger" title="Print Sterile Bag Label">
+                                            <i class="bi bi-printer me-1"></i>Label
+                                        </a>
+                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                                            <li><h6 class="dropdown-header">Update Unit Status</h6></li>
+                                            <li>
+                                                <form method="POST" action="{{ url_for('admin.update_unit_status', unit_id=u.id) }}">
+                                                    <input type="hidden" name="status" value="Quarantined">
+                                                    <button type="submit" class="dropdown-item text-warning"><i class="bi bi-pause-circle me-2"></i>Quarantine</button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form method="POST" action="{{ url_for('admin.update_unit_status', unit_id=u.id) }}">
+                                                    <input type="hidden" name="status" value="In Storage">
+                                                    <button type="submit" class="dropdown-item text-success"><i class="bi bi-check-circle me-2"></i>Return to Storage</button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form method="POST" action="{{ url_for('admin.update_unit_status', unit_id=u.id) }}">
+                                                    <input type="hidden" name="status" value="Discarded">
+                                                    <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Discard / Biohazard</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-qr-code text-muted display-4"></i>
+                <h5 class="fw-bold text-secondary mt-3">No Blood Bags Enrolled</h5>
+                <p class="text-muted small">Register a sterile blood unit to generate its scannable QR code label.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Register Blood Bag Modal -->
+    <div class="modal fade" id="registerUnitModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content rounded-4 border-0">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-qr-code-scan me-2"></i>Register Sterile Blood Unit</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ url_for('admin.register_blood_bag') }}">
+                    <div class="modal-body p-4">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Blood Group *</label>
+                                <select name="blood_group" class="form-select border-danger" required>
+                                    {% for bg in blood_groups %}
+                                        <option value="{{ bg }}">{{ bg }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Component Type *</label>
+                                <select name="component_type" class="form-select">
+                                    <option value="Packed Red Blood Cells">Packed Red Blood Cells (RBC)</option>
+                                    <option value="Whole Human Blood">Whole Human Blood</option>
+                                    <option value="Fresh Frozen Plasma">Fresh Frozen Plasma (FFP)</option>
+                                    <option value="Platelet Concentrate">Platelet Concentrate</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Associated Donor</label>
+                                <select name="donor_id" class="form-select">
+                                    <option value="">Anonymous / Mobile Drive Volunteer</option>
+                                    {% for d in donors %}
+                                        <option value="{{ d.id }}">{{ d.name }} ({{ d.donor_profile.blood_group if d.donor_profile else 'Unknown' }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Volume (ml)</label>
+                                <input type="number" name="volume_ml" class="form-control" value="450" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Shelf Life (Days)</label>
+                                <input type="number" name="shelf_days" class="form-control" value="35" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Cold Storage Compartment</label>
+                                <input type="text" name="storage_location" class="form-control" value="Cold Vault Compartment A">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Serological Screening Tests</label>
+                                <input type="text" name="screening" class="form-control" value="HIV: Non-Reactive | HBV: Non-Reactive | HCV: Non-Reactive | Syphilis: Non-Reactive">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger fw-semibold">Generate Unit &amp; QR Code</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

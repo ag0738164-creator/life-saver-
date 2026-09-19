@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sterile Bag Label #{{ unit.unit_number }} | Life Saver</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f1f5f9;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #1e293b;
+        }
+        .blood-bag-label {
+            width: 440px;
+            margin: 2rem auto;
+            background: #ffffff;
+            border: 3px solid #000000;
+            padding: 1.25rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            font-size: 0.85rem;
+            line-height: 1.3;
+        }
+        .barcode-visual {
+            font-family: monospace;
+            font-size: 1.3rem;
+            letter-spacing: 3px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .abo-box {
+            border: 3px solid #000000;
+            padding: 0.75rem;
+            text-align: center;
+        }
+        .abo-symbol {
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 1;
+            color: #b71c1c;
+        }
+        @media print {
+            body { background: #ffffff !important; }
+            .no-print { display: none !important; }
+            .blood-bag-label {
+                box-shadow: none !important;
+                margin: 0 !important;
+                border: 2px solid #000000 !important;
+                width: 100% !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container py-4 text-center no-print">
+        <div class="mb-2">
+            <span class="badge bg-danger">ISBT-128 Standard Transfusion Label</span>
+        </div>
+        <h4 class="fw-bold">Sterile Blood Bag Identification Label</h4>
+        <div class="mt-2">
+            <button onclick="window.print()" class="btn btn-danger btn-sm px-4 me-2">
+                <i class="bi bi-printer me-1"></i> Print Sterile Adhesive Label
+            </button>
+            <button onclick="window.close()" class="btn btn-outline-secondary btn-sm">
+                Close Window
+            </button>
+        </div>
+    </div>
+
+    <!-- Official Sterile Bag Label -->
+    <div class="blood-bag-label">
+        <!-- Top Banner -->
+        <div class="d-flex justify-content-between align-items-center border-bottom border-2 border-dark pb-2 mb-2">
+            <div>
+                <strong class="fs-6 text-uppercase">Life Saver Blood Bank</strong>
+                <div style="font-size: 0.7rem;" class="text-muted">CENTRAL TRANSFUSION NETWORK</div>
+            </div>
+            <div class="text-end font-monospace" style="font-size: 0.7rem;">
+                VAULT COMP: {{ unit.storage_location }}
+            </div>
+        </div>
+
+        <!-- Unit Number Barcode Area -->
+        <div class="text-center my-2 p-1 border border-dark bg-light">
+            <div class="barcode-visual">|| | |||| || ||| |||| | ||</div>
+            <div class="fw-bold font-monospace fs-5 text-dark">{{ unit.unit_number }}</div>
+            <div style="font-size: 0.7rem;" class="text-muted">DONOR VOLUNTEER ID: #{{ "%05d"|format(unit.donor_id or 1) }}</div>
+        </div>
+
+        <!-- ABO/Rh & QR Code Quadrants -->
+        <div class="row g-2 my-2 align-items-stretch">
+            <div class="col-7">
+                <div class="abo-box h-100 d-flex flex-column justify-content-center">
+                    <div class="abo-symbol">{{ unit.blood_group }}</div>
+                    <div class="fw-bold text-uppercase fs-6 mt-1">
+                        {% if '+' in unit.blood_group %}
+                            RhD POSITIVE
+                        {% else %}
+                            RhD NEGATIVE
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-5">
+                <div class="border border-dark p-2 text-center h-100 d-flex flex-column align-items-center justify-content-center bg-light">
+                    <img src="{{ qr_image }}" alt="Blood Unit QR" style="width: 105px; height: 105px;" class="border">
+                    <div style="font-size: 0.65rem;" class="font-monospace mt-1">SCAN TO AUDIT</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Specifications -->
+        <div class="border border-dark p-2 my-2">
+            <div class="fw-bold text-uppercase fs-6 text-danger">{{ unit.component_type }}</div>
+            <div class="d-flex justify-content-between mt-1">
+                <span>VOL: <strong>{{ unit.volume_ml }} mL &plusmn; 10%</strong></span>
+                <span>CPDA-1 PRESERVATIVE</span>
+            </div>
+            <div class="d-flex justify-content-between mt-1">
+                <span>COLLECTED: <strong>{{ unit.collection_date | format_date }}</strong></span>
+                <span class="text-danger fw-bold">EXPIRES: {{ unit.expiry_date | format_date }}</span>
+            </div>
+        </div>
+
+        <!-- Safety Screening & Storage Temperature Warning -->
+        <div class="border-top border-2 border-dark pt-2 mt-2" style="font-size: 0.72rem;">
+            <div class="fw-bold text-uppercase text-center text-success mb-1">
+                <i class="bi bi-shield-check"></i> NON-REACTIVE: HIV, HBV, HCV, SYPHILIS
+            </div>
+            <div class="text-center font-monospace" style="font-size: 0.68rem;">
+                STORE AT 2&deg;C TO 6&deg;C &bull; PROPER IDENTIFICATION OF RECIPIENT REQUIRED
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

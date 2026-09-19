@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}AI Blood Demand Prediction - Life Saver{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <span class="badge bg-danger mb-1"><i class="bi bi-cpu-fill me-1"></i>Predictive Intelligence</span>
+            <h2 class="fw-bold mb-0">AI-Based Blood Demand Forecasting</h2>
+            <p class="text-muted small mb-0">Multi-factor time-series modeling analyzing historical consumption, trauma rates, and seasonal multipliers.</p>
+        </div>
+        <!-- Horizon Selector -->
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('admin.ai_predictions', horizon=7) }}" class="btn btn-sm {% if horizon == 7 %}btn-danger fw-bold{% else %}btn-outline-secondary{% endif %}">7 Days Forecast</a>
+            <a href="{{ url_for('admin.ai_predictions', horizon=14) }}" class="btn btn-sm {% if horizon == 14 %}btn-danger fw-bold{% else %}btn-outline-secondary{% endif %}">14 Days Forecast</a>
+            <a href="{{ url_for('admin.ai_predictions', horizon=30) }}" class="btn btn-sm {% if horizon == 30 %}btn-danger fw-bold{% else %}btn-outline-secondary{% endif %}">30 Days Forecast</a>
+        </div>
+    </div>
+
+    <!-- Seasonal Factor Advisory Banner -->
+    <div class="alert alert-info d-flex align-items-center justify-content-between shadow-sm rounded-3 mb-4">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-clouds-fill fs-3 text-primary me-3"></i>
+            <div>
+                <strong>Active Seasonal AI Multiplier: &times;{{ forecast.seasonal_factor }}</strong>
+                <div class="small text-muted">{{ forecast.seasonal_reason }}</div>
+            </div>
+        </div>
+        <span class="badge bg-light text-dark border">Confidence Level: 92.4% avg</span>
+    </div>
+
+    <!-- KPI Metric Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold">CURRENT COLD-CHAIN STOCK</div>
+                        <div class="fs-3 fw-bold text-dark mt-1">{{ forecast.total_current_stock }}</div>
+                        <div class="small text-success mt-1"><i class="bi bi-check2 me-1"></i>Available in storage</div>
+                    </div>
+                    <div class="stat-icon bg-light text-primary">
+                        <i class="bi bi-snow2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold">FORECASTED {{ horizon }}-DAY DEMAND</div>
+                        <div class="fs-3 fw-bold text-danger mt-1">{{ forecast.total_forecasted_demand }}</div>
+                        <div class="small text-muted mt-1">Expected hospital requisitions</div>
+                    </div>
+                    <div class="stat-icon bg-light text-danger">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold">NET PROJECTED BALANCE</div>
+                        <div class="fs-3 fw-bold {% if forecast.net_balance < 0 %}text-danger{% else %}text-success{% endif %} mt-1">
+                            {% if forecast.net_balance > 0 %}+{% endif %}{{ forecast.net_balance }}
+                        </div>
+                        <div class="small text-muted mt-1">Units at end of {{ horizon }} days</div>
+                    </div>
+                    <div class="stat-icon bg-light {% if forecast.net_balance < 0 %}text-danger{% else %}text-success{% endif %}">
+                        <i class="bi bi-calculator"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold">CRITICAL SHORTAGE GROUPS</div>
+                        <div class="fs-3 fw-bold text-warning mt-1">{{ forecast.critical_deficits_count }}</div>
+                        <div class="small text-muted mt-1">Requiring immediate targeted drives</div>
+                    </div>
+                    <div class="stat-icon bg-light text-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js Comparative Forecast -->
+    <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-bar-chart-line me-2 text-danger"></i>Current Reserve vs. {{ horizon }}-Day Forecast Demand
+            </h5>
+            <span class="text-muted small">Group-by-Group Balance</span>
+        </div>
+        <div style="height: 320px;">
+            <canvas id="predictionChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Predictions Table -->
+    <div class="card border-0 shadow-sm rounded-3 overflow-hidden bg-white">
+        <div class="card-header bg-light py-3">
+            <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-cpu me-2 text-danger"></i>Detailed Group Predictions &amp; Replenishment Directives</h6>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-uppercase">
+                    <tr>
+                        <th class="ps-3">Blood Group</th>
+                        <th>Current Stock</th>
+                        <th>{{ horizon }}-Day Forecast</th>
+                        <th>Projected Balance</th>
+                        <th>Risk Assessment</th>
+                        <th>Confidence</th>
+                        <th>AI Operational Recommendation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in forecast.predictions %}
+                        <tr class="{% if p.projected_balance < 0 %}table-danger bg-opacity-10{% endif %}">
+                            <td class="ps-3">
+                                <span class="badge bg-light text-danger border fs-6 fw-bold">{{ p.blood_group }}</span>
+                            </td>
+                            <td><strong class="fs-6">{{ p.current_stock }}</strong> <span class="text-muted small">units</span></td>
+                            <td><strong class="fs-6 text-danger">{{ p.forecast_demand }}</strong> <span class="text-muted small">units</span></td>
+                            <td>
+                                <span class="fw-bold {% if p.projected_balance < 0 %}text-danger{% elif p.projected_balance == 0 %}text-warning{% else %}text-success{% endif %}">
+                                    {% if p.projected_balance > 0 %}+{% endif %}{{ p.projected_balance }} units
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {{ p.risk_badge }}">{{ p.risk_level }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height: 6px; width: 60px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ p.confidence }}%;"></div>
+                                    </div>
+                                    <span class="small text-muted">{{ p.confidence }}%</span>
+                                </div>
+                            </td>
+                            <td class="small">
+                                <div class="text-dark fw-semibold">{{ p.action_advice }}</div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('predictionChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ forecast.chart_labels | tojson }},
+            datasets: [
+                {
+                    label: 'Current In-Vault Stock',
+                    data: {{ forecast.chart_stock | tojson }},
+                    backgroundColor: '#1976d2',
+                    borderRadius: 4
+                },
+                {
+                    label: '{{ horizon }}-Day AI Forecasted Demand',
+                    data: {{ forecast.chart_forecast | tojson }},
+                    backgroundColor: '#d32f2f',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

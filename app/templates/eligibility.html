@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Blood Donation Eligibility Checker{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <span class="badge bg-danger mb-2"><i class="bi bi-shield-check me-1"></i>Donor Safety First</span>
+        <h2 class="fw-bold">Am I Eligible to Donate Blood?</h2>
+        <p class="text-muted mx-auto" style="max-width: 600px;">
+            Blood donation is completely safe and healthy for adults who meet basic medical standards. Answer the quick screening below to check your eligibility.
+        </p>
+    </div>
+
+    <div class="row g-5">
+        <!-- Interactive Quiz -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <h4 class="fw-bold text-danger mb-3">
+                    <i class="bi bi-ui-checks me-2"></i>Quick Screening Assessment
+                </h4>
+
+                <form id="eligibilityQuizForm">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Your Age (Years)</label>
+                            <input type="number" id="quizAge" class="form-control" placeholder="e.g. 25" min="10" max="100" required>
+                            <div class="form-text">Must be between 18 and 65 years old.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Your Weight (kg)</label>
+                            <input type="number" id="quizWeight" class="form-control" placeholder="e.g. 68" min="30" max="250" required>
+                            <div class="form-text">Minimum weight requirement is 50 kg.</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Have you donated blood in the last 90 days (3 months)?</label>
+                        <div class="d-flex gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="quizDonatedRecently" id="donatedYes" value="yes" required>
+                                <label class="form-check-label" for="donatedYes">Yes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="quizDonatedRecently" id="donatedNo" value="no" checked>
+                                <label class="form-check-label" for="donatedNo">No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Do you currently have an active fever, acute infection, or taking antibiotics?</label>
+                        <div class="d-flex gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="quizHealthCondition" id="healthYes" value="yes" required>
+                                <label class="form-check-label" for="healthYes">Yes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="quizHealthCondition" id="healthNo" value="no" checked>
+                                <label class="form-check-label" for="healthNo">No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Have you gotten a tattoo, piercing, or dental extraction in the past 6 months?</label>
+                        <div class="d-flex gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="quizTattoo" id="tattooYes" value="yes" required>
+                                <label class="form-check-label" for="tattooYes">Yes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="quizTattoo" id="tattooNo" value="no" checked>
+                                <label class="form-check-label" for="tattooNo">No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 py-2 fw-semibold">
+                        <i class="bi bi-search-heart me-1"></i> Check My Eligibility
+                    </button>
+                </form>
+
+                <!-- Result Container -->
+                <div id="quizResult" class="alert d-none mt-4 p-4 rounded-3" role="alert">
+                    <h5 id="quizResultTitle" class="fw-bold mb-2"></h5>
+                    <p id="quizResultDesc" class="mb-3 small"></p>
+                    <a id="quizActionBtn" href="{{ url_for('auth.register_donor') }}" class="btn btn-success fw-semibold btn-sm">
+                        Proceed to Register as Donor <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guidelines & Information -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-card-checklist text-danger me-2"></i>General Medical Standards</h5>
+                <ul class="list-unstyled mb-0">
+                    <li class="d-flex align-items-start gap-2 mb-3">
+                        <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                        <div>
+                            <strong>Age:</strong> 18 to 65 years old.
+                        </div>
+                    </li>
+                    <li class="d-flex align-items-start gap-2 mb-3">
+                        <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                        <div>
+                            <strong>Weight:</strong> At least 50 kg (110 lbs).
+                        </div>
+                    </li>
+                    <li class="d-flex align-items-start gap-2 mb-3">
+                        <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                        <div>
+                            <strong>Hemoglobin:</strong> Minimum 12.5 g/dL.
+                        </div>
+                    </li>
+                    <li class="d-flex align-items-start gap-2 mb-3">
+                        <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                        <div>
+                            <strong>Interval:</strong> Minimum 90 days between whole blood donations.
+                        </div>
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                        <div>
+                            <strong>Hydration:</strong> Drink plenty of water and eat a light meal before donation.
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-heart-pulse text-danger me-2"></i>Why Donate?</h5>
+                <p class="text-muted small mb-2">
+                    Every 2 seconds, a patient requires blood for life-saving trauma care, organ transplants, cancer chemotherapy, or complicated childbirth.
+                </p>
+                <div class="alert alert-light border small mb-0">
+                    <i class="bi bi-info-circle-fill text-danger me-1"></i>
+                    <strong>Did you know?</strong> A single donation of 450 ml can be separated into red cells, plasma, and platelets to save up to <strong>three lives</strong>!
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

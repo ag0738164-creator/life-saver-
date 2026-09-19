@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Donor Portal Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row align-items-center mb-4 g-3">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center gap-3">
+                <div class="blood-badge-large shadow-sm">
+                    {{ profile.blood_group if profile else '?' }}
+                </div>
+                <div>
+                    <h2 class="fw-bold mb-1">Hello, {{ current_user.name }}!</h2>
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ current_user.city or 'Registered Donor' }}
+                        &bull; Donor ID: #{{ current_user.id }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{{ url_for('donor.donor_card') }}" class="btn btn-outline-danger me-2">
+                <i class="bi bi-person-vcard me-1"></i>Digital Donor Card
+            </a>
+            <a href="{{ url_for('donor.donate') }}" class="btn btn-danger">
+                <i class="bi bi-calendar-plus me-1"></i>Donate Now
+            </a>
+        </div>
+    </div>
+
+    <!-- Emergency Alerts Broadcast Banner -->
+    {% if emergency_alerts %}
+        <div class="alert alert-danger shadow-sm rounded-4 p-4 mb-4 border-danger">
+            <div class="d-flex align-items-start gap-3">
+                <i class="bi bi-broadcast fs-2 text-danger pulse-animation mt-1"></i>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <h5 class="fw-bold text-danger mb-0">Urgent Emergency Donor Appeal Nearby!</h5>
+                        <span class="badge bg-danger">High Priority Dispatch</span>
+                    </div>
+                    <p class="mb-2 text-dark small">
+                        {{ emergency_alerts[0].message_content }}
+                    </p>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('donor.donate') }}" class="btn btn-danger btn-sm fw-semibold">
+                            <i class="bi bi-heart-fill me-1"></i> I Can Donate Now - Schedule
+                        </a>
+                        <span class="text-muted small align-self-center ms-2">Sent {{ emergency_alerts[0].sent_at | format_datetime }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Cooldown / Eligibility Banner -->
+    <div class="mb-4">
+        {% if profile and profile.is_eligible %}
+            <div class="cooldown-box cooldown-ready d-flex flex-wrap justify-content-between align-items-center shadow-sm">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-check-circle-fill fs-1 text-success"></i>
+                    <div>
+                        <h5 class="fw-bold text-success mb-1">You Are Eligible to Donate Blood Today!</h5>
+                        <p class="text-muted small mb-0">
+                            {% if profile.last_donation_date %}
+                                Your last donation was on {{ profile.last_donation_date | format_date }} (more than 90 days ago).
+                            {% else %}
+                                You are ready for your first donation! Every donation saves lives.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                <a href="{{ url_for('donor.donate') }}" class="btn btn-success fw-semibold">
+                    Schedule Your Donation <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        {% elif profile %}
+            <div class="cooldown-box d-flex flex-wrap justify-content-between align-items-center shadow-sm">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-clock-history fs-1 text-warning"></i>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-1">90-Day Waiting Cooldown in Progress</h5>
+                        <p class="text-muted small mb-0">
+                            Your last donation was on <strong>{{ profile.last_donation_date | format_date }}</strong>.
+                            Next eligible date: <strong class="text-danger">{{ profile.next_eligible_date | format_date }}</strong>
+                            ({{ profile.cooldown_days_remaining }} days remaining).
+                        </p>
+                    </div>
+                </div>
+                <span class="badge bg-warning text-dark fs-6 py-2 px-3 rounded-pill">
+                    {{ profile.cooldown_days_remaining }} Days to Ready
+                </span>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Impact & Stats Metrics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold">LIFETIME DONATIONS</div>
+                        <div class="fs-3 fw-bold text-danger mt-1">{{ total_donated_units }}</div>
+                        <div class="small text-muted mt-1">Whole blood units contributed</div>
+                    </div>
+                    <div class="stat-icon bg-light text-danger">
+                        <i class="bi bi-heart-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card stat-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold">ESTIMATED LIVES SAVED</div>
+                        <div class="fs-3 fw-bold text-success mt-1">{{ lives_saved }}</div>
+                        <div class="small text-muted mt-1">Based on 3 lives saved per unit</div>
+                    </div>
+                    <div class="stat-icon bg-light text-success">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card stat-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold">{{ profile.blood_group if profile else 'YOUR' }} INVENTORY LEVEL</div>
+                        <div class="fs-3 fw-bold text-dark mt-1">{{ user_stock.units_available if user_stock else 0 }}</div>
+                        <div class="small mt-1">
+                            {% if user_stock and user_stock.is_critical %}
+                                <span class="text-danger fw-bold"><i class="bi bi-exclamation-circle-fill me-1"></i>Critically needed!</span>
+                            {% else %}
+                                <span class="text-success"><i class="bi bi-check-circle me-1"></i>Adequate reserves</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="stat-icon bg-light text-primary">
+                        <i class="bi bi-snow2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent History & Upcoming Camps -->
+    <div class="row g-4">
+        <!-- Donation History Table -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-danger"></i>My Donation Activity</h5>
+                    <a href="{{ url_for('donor.history') }}" class="small text-danger text-decoration-none fw-semibold">View All &rarr;</a>
+                </div>
+
+                {% if donations %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Blood Group</th>
+                                    <th>Units</th>
+                                    <th>Venue / Notes</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for d in donations %}
+                                    <tr>
+                                        <td>{{ d.donation_date | format_date }}</td>
+                                        <td><span class="badge bg-light text-danger border fw-bold">{{ d.blood_group }}</span></td>
+                                        <td>{{ d.units_donated }} unit</td>
+                                        <td class="small text-muted">{{ d.camp.title if d.camp else 'Blood Center' }}</td>
+                                        <td><span class="badge {{ d.status_badge_class }}">{{ d.status }}</span></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-calendar2-heart text-muted display-4"></i>
+                        <p class="text-muted small mt-2 mb-3">You haven't logged any blood donations yet.</p>
+                        <a href="{{ url_for('donor.donate') }}" class="btn btn-outline-danger btn-sm">Schedule First Donation</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Upcoming Camps in Community -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-geo-alt me-2 text-primary"></i>Nearby Donation Camps</h5>
+                    <a href="{{ url_for('main.camps') }}" class="small text-primary text-decoration-none">All Camps &rarr;</a>
+                </div>
+
+                {% if upcoming_camps %}
+                    <div class="list-group list-group-flush">
+                        {% for camp in upcoming_camps %}
+                            <div class="list-group-item px-0 py-3">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <h6 class="fw-bold mb-0">{{ camp.title }}</h6>
+                                    <span class="badge bg-danger">{{ camp.camp_date.strftime('%b %d') }}</span>
+                                </div>
+                                <div class="small text-muted mb-2">
+                                    <i class="bi bi-geo-alt text-danger me-1"></i>{{ camp.location }}, {{ camp.city }}
+                                </div>
+                                <a href="{{ url_for('donor.donate', camp_id=camp.id) }}" class="btn btn-outline-secondary btn-sm py-1">
+                                    Book This Venue
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted small text-center py-4">No upcoming donation drives scheduled right now.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

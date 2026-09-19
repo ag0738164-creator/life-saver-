@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Raise Blood Requisition{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- Requisition Form -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white">
+                <div class="bg-primary text-white p-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="stat-icon bg-white text-primary rounded-circle">
+                            <i class="bi bi-send-plus-fill fs-3"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0">Hospital Blood Requisition Form</h4>
+                            <p class="small text-white-50 mb-0">Emergency blood units dispatch order from central repository.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('hospital.request_blood') }}">
+                        <h6 class="text-primary fw-bold text-uppercase mb-3">1. Blood Specification &amp; Priority Tier</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-danger">Blood Group Required *</label>
+                                <select name="blood_group" class="form-select border-primary" required>
+                                    <option value="" disabled selected>-- Select Blood Group --</option>
+                                    {% for bg in blood_groups %}
+                                        <option value="{{ bg }}">{{ bg }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Units Requested (Whole Blood / RBC) *</label>
+                                <input type="number" name="units_requested" class="form-control" min="1" max="25" value="1" required>
+                                <div class="form-text small">Maximum 25 units per requisition order.</div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Clinical Urgency Tier *</label>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <div class="border rounded-3 p-2 d-flex align-items-center gap-2">
+                                            <input class="form-check-input mt-0" type="radio" name="urgency" id="urgNormal" value="Normal" checked>
+                                            <label class="form-check-label small" for="urgNormal">
+                                                <strong>Normal</strong> (Scheduled Surgery)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="border rounded-3 p-2 d-flex align-items-center gap-2 border-warning">
+                                            <input class="form-check-input mt-0" type="radio" name="urgency" id="urgCritical" value="Critical">
+                                            <label class="form-check-label small" for="urgCritical">
+                                                <strong class="text-warning-emphasis">Critical</strong> (Next 4-6 hours)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="border rounded-3 p-2 d-flex align-items-center gap-2 border-danger">
+                                            <input class="form-check-input mt-0" type="radio" name="urgency" id="urgEmergency" value="Emergency">
+                                            <label class="form-check-label small text-danger" for="urgEmergency">
+                                                <strong>Emergency</strong> (Immediate trauma)
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="text-primary fw-bold text-uppercase mb-3 mt-4">2. Patient &amp; Clinical Information</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Patient Full Name *</label>
+                                <input type="text" name="patient_name" class="form-control" placeholder="Patient receiving transfusion" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Hospital Case No. / MRN</label>
+                                <input type="text" name="patient_case_no" class="form-control" placeholder="e.g. MRN-2026-9042">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Clinical Indication / Diagnosis / Doctor's Notes</label>
+                                <textarea name="reason" class="form-control" rows="3" placeholder="e.g. Severe acute hemorrhaging secondary to road trauma; hemoglobin dropped to 6.2 g/dL. Cross-match in progress."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-light border small mb-4">
+                            <i class="bi bi-shield-lock-fill text-primary me-1"></i>
+                            Requisition will be transmitted immediately to the central blood bank dispatch console. The requisitioning hospital remains responsible for cold-chain transport container availability upon pickup.
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm">
+                            <i class="bi bi-send-check me-1"></i> Submit Emergency Blood Requisition
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Stock Reference Panel -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <h5 class="fw-bold mb-3"><i class="bi bi-snow2 me-2 text-primary"></i>Live Blood Availability</h5>
+                <p class="text-muted small">Central inventory status as of right now:</p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle text-center mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Group</th>
+                                <th>Available</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in inventory %}
+                                <tr>
+                                    <td class="fw-bold text-danger">{{ item.blood_group }}</td>
+                                    <td class="fw-bold">{{ item.units_available }} units</td>
+                                    <td><span class="badge {{ item.status_badge_class }}">{{ item.status_label }}</span></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

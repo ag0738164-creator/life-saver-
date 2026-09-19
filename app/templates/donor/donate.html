@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule Blood Donation{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white">
+                <div class="bg-danger text-white p-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="stat-icon bg-white text-danger rounded-circle">
+                            <i class="bi bi-calendar-heart-fill fs-3"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0">Schedule Blood Donation</h4>
+                            <p class="small text-white-50 mb-0">Confirm your intent to donate whole blood at our central facility or mobile camp.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    {% if not profile.is_eligible %}
+                        <div class="alert alert-warning p-4 rounded-3 text-center">
+                            <i class="bi bi-exclamation-circle-fill text-warning display-4"></i>
+                            <h5 class="fw-bold mt-3 mb-2">90-Day Waiting Cooldown in Effect</h5>
+                            <p class="text-muted mb-3">
+                                Medical guidelines require at least 90 days between donations to allow your body to naturally replenish red blood cells and iron stores.
+                            </p>
+                            <div class="badge bg-warning text-dark fs-6 py-2 px-3 rounded-pill mb-3">
+                                You can donate again on {{ profile.next_eligible_date | format_date }}
+                            </div>
+                            <div>
+                                <a href="{{ url_for('donor.dashboard') }}" class="btn btn-outline-secondary btn-sm">Return to Dashboard</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <form method="POST" action="{{ url_for('donor.donate') }}">
+                            <div class="alert alert-light border small mb-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-shield-check text-success fs-5"></i>
+                                    <div>
+                                        <strong>Registered Blood Group:</strong> <span class="badge bg-danger">{{ profile.blood_group }}</span>
+                                        &bull; Weight: {{ profile.weight }} kg &bull; Status: <span class="text-success fw-bold">Eligible</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Preferred Donation Date *</label>
+                                    <input type="date" name="donation_date" class="form-control" value="{{ now.strftime('%Y-%m-%d') }}" min="{{ now.strftime('%Y-%m-%d') }}" required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Select Venue / Drive Location *</label>
+                                    <select name="camp_id" class="form-select">
+                                        <option value="">Central Blood Bank &amp; Transfusion Center</option>
+                                        {% for c in upcoming_camps %}
+                                            <option value="{{ c.id }}" {% if request.args.get('camp_id')|int == c.id %}selected{% endif %}>
+                                                Camp: {{ c.title }} ({{ c.city }} - {{ c.camp_date.strftime('%b %d') }})
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Additional Health Notes / Preferred Slot</label>
+                                <textarea name="notes" class="form-control" rows="3" placeholder="e.g. Morning appointment preferred (10:00 AM). Had breakfast, feeling healthy."></textarea>
+                            </div>
+
+                            <div class="card bg-light border-0 p-3 mb-4 rounded-3 small">
+                                <h6 class="fw-bold text-danger mb-2"><i class="bi bi-info-circle me-1"></i>Pre-Donation Checklist</h6>
+                                <ul class="mb-0 text-muted ps-3">
+                                    <li>Get at least 6 to 8 hours of restful sleep the night before.</li>
+                                    <li>Drink an extra 16 oz. (approx. 500 ml) of water before your appointment.</li>
+                                    <li>Eat a healthy, low-fat meal 2 hours prior to donation. Avoid fatty foods.</li>
+                                    <li>Bring your Digital Donor Card or government photo ID.</li>
+                                </ul>
+                            </div>
+
+                            <button type="submit" class="btn btn-danger w-100 py-2 fw-semibold shadow-sm">
+                                <i class="bi bi-check2-circle me-1"></i> Confirm Appointment Booking
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

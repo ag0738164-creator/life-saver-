@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Digital Blood Donor Card{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-4 no-print">
+        <span class="badge bg-danger mb-2"><i class="bi bi-person-vcard me-1"></i>Digital Health Pass</span>
+        <h2 class="fw-bold">Official Blood Donor Identity Card</h2>
+        <p class="text-muted small">Carry this card during phlebotomy sessions or emergencies for expedited verification.</p>
+        <button onclick="window.print()" class="btn btn-danger btn-sm px-4">
+            <i class="bi bi-printer me-1"></i> Print / Save as PDF
+        </button>
+    </div>
+
+    <!-- Digital Card Container -->
+    <div class="donor-card-container">
+        <div class="donor-card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-droplet-fill fs-3"></i>
+                    <div>
+                        <div class="fw-bold fs-5 lh-1">BBMS LifeFlow</div>
+                        <div class="small opacity-75">National Blood Transfusion Network</div>
+                    </div>
+                </div>
+                <span class="badge bg-white text-danger fw-bold px-2 py-1">VERIFIED DONOR</span>
+            </div>
+        </div>
+
+        <div class="donor-card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="fw-bold text-dark mb-1">{{ current_user.name }}</h4>
+                    <div class="text-muted small">
+                        <strong>Donor ID:</strong> BBMS-DON-{{ "%04d"|format(current_user.id) }}
+                    </div>
+                    <div class="text-muted small">
+                        <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ current_user.city or 'Registered Donor' }}
+                    </div>
+                </div>
+                <div class="blood-badge-large shadow-sm">
+                    {{ profile.blood_group if profile else '?' }}
+                </div>
+            </div>
+
+            <div class="row g-2 p-3 bg-light rounded-3 mb-3 small">
+                <div class="col-6">
+                    <span class="text-muted">Age / Gender:</span>
+                    <div class="fw-bold text-dark">{{ profile.age or 'N/A' }} yrs &bull; {{ profile.gender or 'N/A' }}</div>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted">Weight:</span>
+                    <div class="fw-bold text-dark">{{ profile.weight or 'N/A' }} kg</div>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted">Lifetime Donations:</span>
+                    <div class="fw-bold text-danger">{{ total_donations }} times</div>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted">Emergency Phone:</span>
+                    <div class="fw-bold text-dark">{{ current_user.phone or 'N/A' }}</div>
+                </div>
+            </div>
+
+            <div class="border-top pt-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small" style="font-size: 0.75rem;">NEXT ELIGIBILITY:</div>
+                    <div class="fw-bold text-success small">
+                        {{ profile.next_eligible_date | format_date if profile else 'Eligible' }}
+                    </div>
+                </div>
+                <div class="text-end">
+                    <!-- Stylized mock verification barcode / stamp -->
+                    <div class="font-monospace small text-muted letter-spacing-1" style="letter-spacing: 2px;">
+                        ||||| | |||| ||| ||
+                    </div>
+                    <div class="small text-muted" style="font-size: 0.65rem;">SECURE BBMS-CERT</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-2 bg-dark text-white text-center small" style="font-size: 0.7rem;">
+            24/7 Helpline: 1800-BLOOD-LIFE &bull; Valid across all partner hospitals and regional blood centers.
+        </div>
+    </div>
+</div>
+{% endblock %}

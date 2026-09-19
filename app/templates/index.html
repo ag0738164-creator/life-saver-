@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Life Saver - Intelligent Blood Bank Management System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center text-lg-start">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <span class="badge bg-light text-danger px-3 py-2 rounded-pill fw-semibold mb-3 shadow-sm">
+                    <i class="bi bi-cpu-fill me-1"></i> AI-Powered Healthcare Logistics
+                </span>
+                <h1 class="display-4 fw-bold mb-3">Life Saver: Intelligent Blood Bank &amp; Emergency Transfusion Network</h1>
+                <p class="lead text-white-50 mb-4">
+                    Empowering blood banks and hospitals with AI-based demand prediction, location-based emergency donor matching, and QR code cold-chain unit tracking to eliminate shortages when seconds count.
+                </p>
+                <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+                    <a href="{{ url_for('main.stock') }}" class="btn btn-light btn-lg text-danger fw-bold shadow-sm">
+                        <i class="bi bi-activity me-2"></i>Check Live Stock
+                    </a>
+                    <a href="{{ url_for('auth.register_donor') }}" class="btn btn-outline-light btn-lg fw-semibold">
+                        <i class="bi bi-heart-fill me-2 text-danger"></i>Register as Donor
+                    </a>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-dark btn-lg fw-semibold">
+                        <i class="bi bi-hospital me-2"></i>Hospital Requisition
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card border-0 rounded-4 shadow-lg p-4 bg-white text-dark">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-danger mb-0">
+                            <i class="bi bi-broadcast me-2 brand-icon"></i>Live Inventory Snapshot
+                        </h5>
+                        <span class="badge bg-danger rounded-pill">{{ total_units }} Units Available</span>
+                    </div>
+                    <p class="text-muted small">Updated in real-time across central repository storage.</p>
+                    <div class="row g-2">
+                        {% for item in inventory %}
+                            <div class="col-3">
+                                <div class="p-2 border rounded text-center bg-light">
+                                    <div class="fw-bold text-danger">{{ item.blood_group }}</div>
+                                    <div class="fs-5 fw-bold text-dark">{{ item.units_available }}</div>
+                                    <span class="badge {{ item.status_badge_class }} text-white py-1 px-1 small" style="font-size: 0.65rem;">
+                                        {{ item.status_label }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-3 text-center">
+                        <a href="{{ url_for('main.stock') }}" class="small fw-semibold text-danger text-decoration-none">
+                            View Detailed Stock &amp; Critical Thresholds <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Impact Counters -->
+<section class="py-5 bg-white border-bottom">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-md-3 col-6">
+                <div class="p-3">
+                    <div class="text-danger display-5 fw-bold mb-1">{{ total_units }}</div>
+                    <div class="text-muted fw-semibold">Units in Cold Chain</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="p-3">
+                    <div class="text-primary display-5 fw-bold mb-1">{{ total_donors }}</div>
+                    <div class="text-muted fw-semibold">Registered Donors</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="p-3">
+                    <div class="text-success display-5 fw-bold mb-1">{{ total_hospitals }}</div>
+                    <div class="text-muted fw-semibold">Connected Hospitals</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="p-3">
+                    <div class="text-info display-5 fw-bold mb-1">{{ fulfilled_requests }}</div>
+                    <div class="text-muted fw-semibold">Emergency Requisitions Fulfilled</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features / Roles Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h6 class="text-danger fw-bold text-uppercase">Structured Workflow</h6>
+            <h2 class="fw-bold">How the Blood Bank Management System Operates</h2>
+            <p class="text-muted mx-auto" style="max-width: 650px;">
+                Engineered with strict role-based controls, inventory auditing, and transparent tracking to eliminate bottlenecks when minutes count.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 p-4 border-0 shadow-sm rounded-3">
+                    <div class="stat-icon bg-light text-danger mb-3">
+                        <i class="bi bi-person-heart fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">For Donors</h5>
+                    <p class="text-muted">
+                        Create your verified profile, track lifetime donations, check your next donation cooldown date (90 days interval), and download your official digital Blood Donor ID card.
+                    </p>
+                    <a href="{{ url_for('auth.register_donor') }}" class="mt-auto fw-semibold text-danger text-decoration-none">
+                        Join Donor Network <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 p-4 border-0 shadow-sm rounded-3">
+                    <div class="stat-icon bg-light text-primary mb-3">
+                        <i class="bi bi-hospital fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">For Hospitals</h5>
+                    <p class="text-muted">
+                        Submit online blood requisitions with custom priority tiers (Normal, Critical, Emergency). Track real-time fulfillment status and print verified dispatch receipts.
+                    </p>
+                    <a href="{{ url_for('auth.register_hospital') }}" class="mt-auto fw-semibold text-primary text-decoration-none">
+                        Register Hospital <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 p-4 border-0 shadow-sm rounded-3">
+                    <div class="stat-icon bg-light text-success mb-3">
+                        <i class="bi bi-sliders fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">For Administrators</h5>
+                    <p class="text-muted">
+                        Manage inventory with automated decrement upon request approval and increment upon donation logging. Monitor safety thresholds and export CSV compliance logs.
+                    </p>
+                    <a href="{{ url_for('auth.login') }}" class="mt-auto fw-semibold text-success text-decoration-none">
+                        Admin Portal <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Advanced Intelligent Features Showcase -->
+<section class="py-5 bg-white border-top border-bottom">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-danger mb-2"><i class="bi bi-stars me-1"></i>Next-Gen Healthcare</span>
+            <h2 class="fw-bold">Advanced Intelligent Capabilities</h2>
+            <p class="text-muted mx-auto" style="max-width: 650px;">
+                State-of-the-art automation designed to predict shortages, connect nearby donors in seconds, and track every unit from vein to vein.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-light">
+                    <div class="stat-icon bg-danger text-white mb-3 shadow-sm">
+                        <i class="bi bi-cpu-fill fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">AI-Based Demand Prediction</h5>
+                    <p class="text-muted small">
+                        Multi-factor time-series algorithm forecasting 14-day and 30-day blood group requirements. Flags seasonal trauma spikes and automated deficit alerts.
+                    </p>
+                    <div class="mt-auto">
+                        <span class="badge bg-danger-subtle text-danger border border-danger">92.4% Forecasting Confidence</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-light">
+                    <div class="stat-icon bg-primary text-white mb-3 shadow-sm">
+                        <i class="bi bi-geo-alt-fill fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Emergency Geo-Donor Matching</h5>
+                    <p class="text-muted small">
+                        When critical requisitions are logged, the system identifies compatible, medically eligible donors near the hospital and broadcasts instant SMS &amp; Email alerts.
+                    </p>
+                    <div class="mt-auto">
+                        <span class="badge bg-primary-subtle text-primary border border-primary">Compatible &amp; Cooldown Filtered</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-light">
+                    <div class="stat-icon bg-success text-white mb-3 shadow-sm">
+                        <i class="bi bi-qr-code-scan fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">QR Code Unit Tracking</h5>
+                    <p class="text-muted small">
+                        Each blood bag receives a unique QR code certifying its donor, ABO/Rh type, testing clearance, and cold-chain expiration with printable sterile bag labels.
+                    </p>
+                    <div class="mt-auto">
+                        <span class="badge bg-success-subtle text-success border border-success">ISBT-128 Compliant</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Blood Compatibility Chart -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <h6 class="text-danger fw-bold text-uppercase">Medical Reference</h6>
+                <h2 class="fw-bold mb-3">Blood Type Compatibility Guide</h2>
+                <p class="text-muted">
+                    Knowing your blood type compatibility is crucial during emergency transfusions. Red blood cells possess antigens that must be matched accurately to prevent adverse immune reactions.
+                </p>
+                <div class="list-group list-group-flush shadow-sm rounded-3 bg-white p-3">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-danger fs-6 me-2">O-</span>
+                            <strong>Universal Red Cell Donor</strong>
+                        </div>
+                        <span class="text-muted small">Can give to ANY blood type</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-danger fs-6 me-2">AB+</span>
+                            <strong>Universal Recipient</strong>
+                        </div>
+                        <span class="text-muted small">Can receive from ANY blood type</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-danger fs-6 me-2">O+</span>
+                            <strong>Most Common Blood Group</strong>
+                        </div>
+                        <span class="text-muted small">Can give to O+, A+, B+, AB+</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="{{ url_for('main.eligibility') }}" class="btn btn-outline-danger fw-semibold">
+                        <i class="bi bi-question-circle me-1"></i> Check If You Are Eligible to Donate
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm p-4 rounded-3 bg-white">
+                    <h5 class="fw-bold text-danger mb-3"><i class="bi bi-table me-2"></i>Quick Compatibility Matrix</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered text-center align-middle mb-0">
+                            <thead class="table-danger">
+                                <tr>
+                                    <th>Blood Group</th>
+                                    <th>Can Donate To</th>
+                                    <th>Can Receive From</th>
+                                </tr>
+                            </thead>
+                            <tbody class="small">
+                                <tr><td><strong>A+</strong></td><td>A+, AB+</td><td>A+, A-, O+, O-</td></tr>
+                                <tr><td><strong>O+</strong></td><td>O+, A+, B+, AB+</td><td>O+, O-</td></tr>
+                                <tr><td><strong>B+</strong></td><td>B+, AB+</td><td>B+, B-, O+, O-</td></tr>
+                                <tr><td><strong>AB+</strong></td><td>AB+ only</td><td>All blood types</td></tr>
+                                <tr><td><strong>A-</strong></td><td>A+, A-, AB+, AB-</td><td>A-, O-</td></tr>
+                                <tr><td><strong>O-</strong></td><td>All blood types</td><td>O- only</td></tr>
+                                <tr><td><strong>B-</strong></td><td>B+, B-, AB+, AB-</td><td>B-, O-</td></tr>
+                                <tr><td><strong>AB-</strong></td><td>AB+, AB-</td><td>AB-, A-, B-, O-</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Upcoming Camps Preview -->
+{% if upcoming_camps %}
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h6 class="text-danger fw-bold text-uppercase">Community Outreach</h6>
+                <h2 class="fw-bold mb-0">Upcoming Blood Donation Camps</h2>
+            </div>
+            <a href="{{ url_for('main.camps') }}" class="btn btn-outline-danger btn-sm fw-semibold">
+                View All Camps <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            {% for camp in upcoming_camps %}
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-3">
+                        <div class="card-body">
+                            <span class="badge bg-danger mb-2"><i class="bi bi-calendar-event me-1"></i>{{ camp.camp_date.strftime('%b %d, %Y') }}</span>
+                            <h5 class="fw-bold mb-1">{{ camp.title }}</h5>
+                            <p class="text-muted small mb-2"><i class="bi bi-building me-1"></i>Organized by {{ camp.organized_by }}</p>
+                            <div class="small text-secondary mb-3">
+                                <div><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ camp.location }}, {{ camp.city }}</div>
+                                <div><i class="bi bi-clock text-primary me-1"></i>{{ camp.start_time }} - {{ camp.end_time }}</div>
+                            </div>
+                            <p class="small text-muted">{{ camp.description[:120] }}...</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pt-0 pb-3">
+                            <a href="{{ url_for('auth.register_donor') }}" class="btn btn-outline-danger btn-sm w-100 fw-semibold">
+                                Register to Donate
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Emergency Callout Banner -->
+<section class="py-4 bg-danger text-white">
+    <div class="container">
+        <div class="row align-items-center justify-content-between g-3">
+            <div class="col-lg-8">
+                <h4 class="fw-bold mb-1"><i class="bi bi-exclamation-octagon-fill me-2"></i>Are You a Hospital in Need of Urgent Blood Units?</h4>
+                <p class="mb-0 opacity-90">Raise an emergency requisition through your hospital portal for expedited batch dispensing.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="{{ url_for('auth.login') }}" class="btn btn-light text-danger fw-bold me-2">Hospital Sign In</a>
+                <a href="tel:18002566354" class="btn btn-outline-light fw-bold"><i class="bi bi-telephone-fill me-1"></i>Call Helpline</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

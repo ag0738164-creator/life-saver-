@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Blood Donation Camps &amp; Drives{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <span class="badge bg-danger mb-2"><i class="bi bi-geo-alt-fill me-1"></i>Community Drives</span>
+            <h2 class="fw-bold mb-0">Upcoming Blood Donation Camps</h2>
+            <p class="text-muted mb-0">Join a verified mobile drive or hospital donation camp in your neighborhood.</p>
+        </div>
+        <div>
+            {% if current_user.is_authenticated and current_user.is_admin %}
+                <a href="{{ url_for('admin.camps_management') }}" class="btn btn-danger btn-sm">
+                    <i class="bi bi-plus-circle me-1"></i>Schedule New Camp
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Search / Filter -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4 p-3 bg-white">
+        <form method="GET" action="{{ url_for('main.camps') }}" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                    <input type="text" name="city" class="form-control" placeholder="Search by city (e.g. New York, Chicago)..." value="{{ search_city }}">
+                </div>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-danger btn-sm">Search</button>
+            </div>
+            {% if search_city %}
+                <div class="col-auto">
+                    <a href="{{ url_for('main.camps') }}" class="btn btn-outline-secondary btn-sm">Clear</a>
+                </div>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if camps %}
+        <div class="row g-4">
+            {% for camp in camps %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm rounded-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-calendar-check me-1"></i>{{ camp.camp_date.strftime('%a, %b %d, %Y') }}
+                                </span>
+                                <span class="badge bg-light text-dark border">{{ camp.status }}</span>
+                            </div>
+                            <h5 class="fw-bold mb-1">{{ camp.title }}</h5>
+                            <p class="text-muted small mb-3"><i class="bi bi-building me-1"></i>{{ camp.organized_by }}</p>
+
+                            <div class="p-3 bg-light rounded-2 mb-3 small">
+                                <div class="mb-1">
+                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i><strong>Venue:</strong> {{ camp.location }}
+                                </div>
+                                <div class="mb-1">
+                                    <i class="bi bi-pin-map text-primary me-1"></i><strong>City:</strong> {{ camp.city }}
+                                </div>
+                                <div class="mb-1">
+                                    <i class="bi bi-clock text-success me-1"></i><strong>Hours:</strong> {{ camp.start_time }} - {{ camp.end_time }}
+                                </div>
+                                {% if camp.contact_phone %}
+                                    <div>
+                                        <i class="bi bi-telephone text-secondary me-1"></i><strong>Contact:</strong> {{ camp.contact_phone }} ({{ camp.contact_person or 'Coordinator' }})
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <p class="small text-muted mb-0">{{ camp.description }}</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pt-0 pb-3">
+                            {% if current_user.is_authenticated and current_user.is_donor %}
+                                <a href="{{ url_for('donor.donate', camp_id=camp.id) }}" class="btn btn-outline-danger btn-sm w-100 fw-semibold">
+                                    <i class="bi bi-calendar-plus me-1"></i>Schedule Donation Here
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('auth.register_donor') }}" class="btn btn-outline-danger btn-sm w-100 fw-semibold">
+                                    <i class="bi bi-heart me-1"></i>Register to Attend
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 bg-white rounded-3 shadow-sm p-4">
+            <i class="bi bi-calendar-x text-muted display-4"></i>
+            <h5 class="fw-bold mt-3 text-secondary">No Donation Camps Found</h5>
+            <p class="text-muted small">No camps match your search query or are scheduled in this region currently.</p>
+            <a href="{{ url_for('main.camps') }}" class="btn btn-outline-danger btn-sm">View All Camps</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Oversight Dashboard{% endblock %}
+
+{% block head %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <span class="badge bg-danger mb-1"><i class="bi bi-shield-lock-fill me-1"></i>Administrator Oversight</span>
+            <h2 class="fw-bold mb-0">Operations &amp; Logistics Dashboard</h2>
+            <p class="text-muted small mb-0">Centralized control of cold-chain inventory, donor engagement &amp; hospital fulfillment.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ url_for('admin.export_csv', data_type='inventory') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-download me-1"></i>Export Stock CSV
+            </a>
+            <a href="{{ url_for('admin.export_csv', data_type='requests') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-download me-1"></i>Export Requisitions CSV
+            </a>
+            <a href="{{ url_for('admin.donations_list') }}" class="btn btn-danger btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>Log New Donation
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert for Critical Blood Groups -->
+    {% if critical_groups_count > 0 %}
+        <div class="alert alert-danger d-flex align-items-center justify-content-between shadow-sm rounded-3 mb-4">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-danger"></i>
+                <div>
+                    <strong>Critical Inventory Alert:</strong> {{ critical_groups_count }} blood group(s) are currently at or below minimum threshold!
+                </div>
+            </div>
+            <a href="{{ url_for('admin.inventory') }}" class="btn btn-danger btn-sm">Restock Inventory</a>
+        </div>
+    {% endif %}
+
+    <!-- KPI Metric Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold">TOTAL BLOOD UNITS</div>
+                        <div class="fs-3 fw-bold text-dark mt-1">{{ total_units }}</div>
+                        <div class="small text-success mt-1"><i class="bi bi-snow2 me-1"></i>Cold-chain storage</div>
+                    </div>
+                    <div class="stat-icon bg-light text-danger">
+                        <i class="bi bi-droplet-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold">PENDING REQUISITIONS</div>
+                        <div class="fs-3 fw-bold text-warning mt-1">{{ pending_requests_count }}</div>
+                        <div class="small text-muted mt-1"><a href="{{ url_for('admin.requests_list', status='Pending') }}" class="text-decoration-none">Review queue &rarr;</a></div>
+                    </div>
+                    <div class="stat-icon bg-light text-warning">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold">REGISTERED DONORS</div>
+                        <div class="fs-3 fw-bold text-primary mt-1">{{ total_donors }}</div>
+                        <div class="small text-muted mt-1">{{ completed_donations_count }} donations completed</div>
+                    </div>
+                    <div class="stat-icon bg-light text-primary">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold">PARTNER HOSPITALS</div>
+                        <div class="fs-3 fw-bold text-success mt-1">{{ total_hospitals }}</div>
+                        <div class="small text-muted mt-1">Active verified network</div>
+                    </div>
+                    <div class="stat-icon bg-light text-success">
+                        <i class="bi bi-building"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts & Inventory Snapshot -->
+    <div class="row g-4 mb-4">
+        <!-- Chart.js Inventory Bar Chart -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-bar-chart-fill me-2 text-danger"></i>Inventory Volume by Blood Group</h5>
+                    <a href="{{ url_for('admin.inventory') }}" class="btn btn-outline-danger btn-sm">Manage Units</a>
+                </div>
+                <div style="height: 280px;">
+                    <canvas id="bloodStockChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mini Inventory Table with Quick Adjustment -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-box-seam me-2 text-primary"></i>Stock Status</h5>
+                    <span class="text-muted small">8 Compartments</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Group</th>
+                                <th>Units</th>
+                                <th>Threshold</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in inventory %}
+                                <tr>
+                                    <td><strong class="text-danger">{{ item.blood_group }}</strong></td>
+                                    <td class="fw-bold">{{ item.units_available }}</td>
+                                    <td class="text-muted">{{ item.critical_threshold }}</td>
+                                    <td>
+                                        <span class="badge {{ item.status_badge_class }} py-1">
+                                            {{ item.status_label }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Hospital Requisitions & Recent Donations -->
+    <div class="row g-4">
+        <!-- Recent Requests -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-hospital me-2 text-danger"></i>Incoming Hospital Requisitions</h5>
+                    <a href="{{ url_for('admin.requests_list') }}" class="small fw-semibold text-danger text-decoration-none">
+                        View All ({{ pending_requests_count }} Pending) &rarr;
+                    </a>
+                </div>
+
+                {% if recent_requests %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small text-uppercase">
+                                <tr>
+                                    <th>Req ID</th>
+                                    <th>Hospital</th>
+                                    <th>Blood Group</th>
+                                    <th>Units</th>
+                                    <th>Urgency</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in recent_requests %}
+                                    <tr>
+                                        <td>#{{ req.id }}</td>
+                                        <td>
+                                            <div class="fw-semibold">{{ req.hospital.name }}</div>
+                                            <div class="text-muted small">Pt: {{ req.patient_name }}</div>
+                                        </td>
+                                        <td><span class="badge bg-light text-danger border fw-bold fs-6">{{ req.blood_group }}</span></td>
+                                        <td class="fw-bold">{{ req.units_requested }}</td>
+                                        <td><span class="badge {{ req.urgency_badge_class }}">{{ req.urgency }}</span></td>
+                                        <td><span class="badge {{ req.status_badge_class }}">{{ req.status }}</span></td>
+                                        <td>
+                                            {% if req.status == 'Pending' %}
+                                                <div class="d-flex gap-1">
+                                                    <form method="POST" action="{{ url_for('admin.approve_request', request_id=req.id) }}" class="d-inline">
+                                                        <button type="submit" class="btn btn-success btn-sm py-0 px-2" title="Approve & Dispense">
+                                                            Approve
+                                                        </button>
+                                                    </form>
+                                                    <form method="POST" action="{{ url_for('admin.reject_request', request_id=req.id) }}" class="d-inline">
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2" title="Reject">
+                                                            Reject
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            {% else %}
+                                                <a href="{{ url_for('admin.requests_list') }}" class="btn btn-outline-secondary btn-sm py-0 px-2">Details</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-4 mb-0">No blood requisitions logged yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Donations -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-heart-pulse me-2 text-danger"></i>Recent Donations</h5>
+                    <a href="{{ url_for('admin.donations_list') }}" class="small text-danger text-decoration-none">Log &rarr;</a>
+                </div>
+
+                {% if recent_donations %}
+                    <div class="list-group list-group-flush">
+                        {% for don in recent_donations %}
+                            <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-semibold">{{ don.donor.name }}</div>
+                                    <div class="text-muted small">{{ don.donation_date.strftime('%b %d, %Y') }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-danger">{{ don.blood_group }}</span>
+                                    <div class="small fw-semibold text-success mt-1">+{{ don.units_donated }} unit</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-4 mb-0">No donation records found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('bloodStockChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_labels | tojson }},
+            datasets: [{
+                label: 'Units in Storage',
+                data: {{ chart_data | tojson }},
+                backgroundColor: [
+                    '#c62828', '#d32f2f', '#e53935', '#f44336',
+                    '#ef5350', '#e57373', '#b71c1c', '#880e4f'
+                ],
+                borderRadius: 6,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ' Available: ' + context.parsed.y + ' Units';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
