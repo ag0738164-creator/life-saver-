@@ -86,7 +86,7 @@
         <div class="text-center my-2 p-1 border border-dark bg-light">
             <div class="barcode-visual">|| | |||| || ||| |||| | ||</div>
             <div class="fw-bold font-monospace fs-5 text-dark">{{ unit.unit_number }}</div>
-            <div style="font-size: 0.7rem;" class="text-muted">DONOR VOLUNTEER ID: #{{ "%05d"|format(unit.donor_id or 1) }}</div>
+            <div style="font-size: 0.7rem;" class="text-muted">DONOR VOLUNTEER ID: #{{ "%05d"|format((unit.donor_id or 1)|int) }}</div>
         </div>
 
         <!-- ABO/Rh & QR Code Quadrants -->

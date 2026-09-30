@@ -2,7 +2,16 @@
 
 **Life Saver** is an intelligent, centralized, and responsive healthcare web platform designed to automate blood donor management, maintain real-time cold-chain inventory, and streamline hospital blood requisitions to eliminate delays during medical emergencies.
 
-Developed using **Python (Flask)**, **Bootstrap 5**, **Chart.js**, and **SQLAlchemy (SQLite3 / MySQL)**.
+Developed using **Python (Flask)**, **Firebase Cloud Firestore (`firebase-admin`)**, **Bootstrap 5**, and **Chart.js**.
+
+---
+
+## 🗄️ Firebase Database Backend
+
+Life Saver uses **Google Cloud Firebase (Firestore)** as its primary database:
+- **Zero-Friction Dual-Mode**: Seamlessly switches between live Google Cloud Firebase (when `serviceAccountKey.json` is provided) and high-performance persistent Local Firestore Mode for offline execution.
+- **Real-Time Collections**: Collections for `users`, `donor_profiles`, `hospital_profiles`, `blood_inventory`, `blood_requests`, `blood_bag_units`, `donation_camps`, `donation_records`, and `emergency_alerts`.
+- **See [FIREBASE_SETUP.md](FIREBASE_SETUP.md)** for a complete step-by-step connection guide.
 
 ---
 

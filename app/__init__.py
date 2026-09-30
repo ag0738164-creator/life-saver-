@@ -1,29 +1,31 @@
 from datetime import datetime, timezone
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import Config
+from app.firebase_db import get_firebase_db, get_db_mode
+from app.models import db, User
 
-db = SQLAlchemy()
 login_manager = LoginManager()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Initialize extensions
+    # Initialize Firebase Database
+    get_firebase_db(app.config)
     db.init_app(app)
+
+    # Initialize Flask-Login
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'warning'
 
-    # Register models & user loader
-    from app.models import User
-
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        if not user_id:
+            return None
+        return User.get(str(user_id))
 
     # Register blueprints
     from app.routes.main import main_bp
@@ -45,7 +47,8 @@ def create_app(config_class=Config):
         return {
             'now': current_time,
             'current_year': current_time.year,
-            'blood_groups': app.config.get('BLOOD_GROUPS', ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])
+            'blood_groups': app.config.get('BLOOD_GROUPS', ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']),
+            'db_mode': get_db_mode()
         }
 
     # Custom template filters
@@ -58,7 +61,9 @@ def create_app(config_class=Config):
                 value = datetime.fromisoformat(value)
             except Exception:
                 return value
-        return value.strftime(format)
+        if hasattr(value, 'strftime'):
+            return value.strftime(format)
+        return str(value)
 
     @app.template_filter('format_date')
     def format_date(value, format='%b %d, %Y'):
@@ -69,6 +74,8 @@ def create_app(config_class=Config):
                 value = datetime.fromisoformat(value)
             except Exception:
                 return value
-        return value.strftime(format)
+        if hasattr(value, 'strftime'):
+            return value.strftime(format)
+        return str(value)
 
     return app

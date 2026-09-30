@@ -1,3 +1,4 @@
+import os
 import unittest
 from datetime import date, timedelta
 from app import create_app, db
@@ -10,13 +11,20 @@ from app.services.donor_matcher import EmergencyDonorMatcher
 from app.services.qr_service import BloodUnitQRService
 from config import Config
 
+TEST_DB_PATH = os.path.join(os.path.dirname(__file__), 'test_firebase.json')
+
 class TestConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    LOCAL_FIRESTORE_PATH = TEST_DB_PATH
     WTF_CSRF_ENABLED = False
 
 class BloodBankTestCase(unittest.TestCase):
     def setUp(self):
+        if os.path.exists(TEST_DB_PATH):
+            try:
+                os.remove(TEST_DB_PATH)
+            except Exception:
+                pass
         self.app = create_app(TestConfig)
         self.app_context = self.app.app_context()
         self.app_context.push()
@@ -25,7 +33,7 @@ class BloodBankTestCase(unittest.TestCase):
 
         # Seed blood groups in inventory
         for bg in ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']:
-            inv = BloodInventory(blood_group=bg, units_available=10, critical_threshold=5)
+            inv = BloodInventory(id=bg, blood_group=bg, units_available=10, critical_threshold=5)
             db.session.add(inv)
         db.session.commit()
 
@@ -33,6 +41,11 @@ class BloodBankTestCase(unittest.TestCase):
         db.session.remove()
         db.drop_all()
         self.app_context.pop()
+        if os.path.exists(TEST_DB_PATH):
+            try:
+                os.remove(TEST_DB_PATH)
+            except Exception:
+                pass
 
     def test_donor_registration_and_profile(self):
         """Test donor registration and profile creation."""

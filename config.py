@@ -3,17 +3,18 @@ import os
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
-    """Base configuration class."""
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'bbms-super-secret-key-2026-prod-dev')
+    """Life Saver Application Configuration with Firebase Database Support."""
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'lifesaver-super-secret-firebase-key-2026')
     
-    # Default SQLite, or use MySQL/PostgreSQL via DATABASE_URL environment variable
-    # Example MySQL URI: mysql+pymysql://username:password@localhost/bloodbank_db
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL',
-        f"sqlite:///{os.path.join(BASE_DIR, 'bloodbank.db')}"
+    # Firebase configuration
+    FIREBASE_CREDENTIALS = os.environ.get(
+        'FIREBASE_CREDENTIALS',
+        os.path.join(BASE_DIR, 'serviceAccountKey.json')
     )
+    FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID', None)
     
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Local Firestore fallback file for zero-credential offline development
+    LOCAL_FIRESTORE_PATH = os.path.join(BASE_DIR, 'firebase_db_data.json')
     
     # Blood bank standard blood groups
     BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
