@@ -48,7 +48,8 @@ def create_app(config_class=Config):
             'now': current_time,
             'current_year': current_time.year,
             'blood_groups': app.config.get('BLOOD_GROUPS', ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']),
-            'db_mode': get_db_mode()
+            'db_mode': get_db_mode(),
+            'firebase_config': app.config.get('FIREBASE_CONFIG', {})
         }
 
     # Custom template filters

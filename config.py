@@ -11,7 +11,17 @@ class Config:
         'FIREBASE_CREDENTIALS',
         os.path.join(BASE_DIR, 'serviceAccountKey.json')
     )
-    FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID', None)
+    FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID', 'lifesaver-2df25')
+
+    # Web SDK Configuration for lifesaver-2df25
+    FIREBASE_CONFIG = {
+        'apiKey': os.environ.get('FIREBASE_API_KEY', 'AIzaSyDjJ8NA1ipMnuBBSfU6GJ7kA48kU0m6_5g'),
+        'authDomain': os.environ.get('FIREBASE_AUTH_DOMAIN', 'lifesaver-2df25.firebaseapp.com'),
+        'projectId': os.environ.get('FIREBASE_PROJECT_ID', 'lifesaver-2df25'),
+        'storageBucket': os.environ.get('FIREBASE_STORAGE_BUCKET', 'lifesaver-2df25.firebasestorage.app'),
+        'messagingSenderId': os.environ.get('FIREBASE_MESSAGING_SENDER_ID', '963027586131'),
+        'appId': os.environ.get('FIREBASE_APP_ID', '1:963027586131:web:2b129ae969107cca050aa6')
+    }
     
     # Local Firestore fallback file for zero-credential offline development
     LOCAL_FIRESTORE_PATH = os.path.join(BASE_DIR, 'firebase_db_data.json')

@@ -4,38 +4,45 @@ Welcome to **Life Saver**! The entire backend is built to use **Google Cloud Fir
 
 ---
 
-## ⚡ Quick Start: Dual Mode Architecture
+## ⚡ Quick Start: Dual Mode Architecture & Active Project
+
+Your project **`lifesaver-2df25`** is configured and active!
+
+```javascript
+const firebaseConfig = {
+  apiKey: "AIzaSyDjJ8NA1ipMnuBBSfU6GJ7kA48kU0m6_5g",
+  authDomain: "lifesaver-2df25.firebaseapp.com",
+  projectId: "lifesaver-2df25",
+  storageBucket: "lifesaver-2df25.firebasestorage.app",
+  messagingSenderId: "963027586131",
+  appId: "1:963027586131:web:2b129ae969107cca050aa6"
+};
+```
 
 Life Saver includes a smart **Dual-Mode Firebase Engine**:
 
 1. **🚀 Local Firestore Mode (Zero-Config, Default)**:
-   - When no external Firebase credentials file is present, the app automatically runs in **Local Firestore Mode**.
+   - When no external Firebase service account credentials file is present, the app automatically runs in **Local Firestore Mode**.
    - It maintains full compatibility with the official Google Cloud Firestore Python SDK (`firebase_admin.firestore`) and persists all collections to `firebase_db_data.json`.
-   - **You can immediately launch and test the app with `python run.py` without needing a Google Cloud account!**
+   - The Web SDK is initialized on the frontend with your `lifesaver-2df25` project configuration.
+   - **You can immediately launch and test the app with `python run.py`!**
 
 2. **🔥 Live Google Cloud Firebase Mode (Production Ready)**:
-   - As soon as you place your `serviceAccountKey.json` into the project root (or point `FIREBASE_CREDENTIALS` to it), Life Saver automatically switches to **Live Google Cloud Firebase Firestore**.
+   - To connect the Python backend directly to your live Cloud Firestore for project `lifesaver-2df25`, generate and download the Service Account Private Key from Firebase Console and place it as `serviceAccountKey.json` in the root folder.
+   - Life Saver will automatically detect it and switch backend operations to **Live Google Cloud Firebase Firestore**.
 
 ---
 
-## 🛠️ Step-by-Step: Connecting to Your Live Firebase Project
+## 🛠️ Step-by-Step: Connecting Backend Directly to `lifesaver-2df25`
 
-If you want to connect Life Saver to your live Google Firebase Console:
+### Step 1: Enable Cloud Firestore in `lifesaver-2df25`
+1. Navigate to the [Firebase Console](https://console.firebase.google.com/) and open **`lifesaver-2df25`**.
+2. In the left navigation menu, go to **Build** > **Firestore Database**.
+3. Click **Create database** (if not created already).
+4. Select a location and mode (**Start in test mode** for development), and click **Enable**.
 
-### Step 1: Create a Project in Firebase Console
-1. Navigate to the [Firebase Console](https://console.firebase.google.com/).
-2. Click **Add project** (or **Create a project**).
-3. Name your project (e.g. `lifesaver-bloodbank`) and click **Continue**.
-4. (Optional) Disable or enable Google Analytics, then click **Create Project**.
-
-### Step 2: Enable Cloud Firestore
-1. In the left navigation menu of the Firebase console, go to **Build** > **Firestore Database**.
-2. Click **Create database**.
-3. Choose a location closest to your users (e.g., `nam5 (us-central)` or `asia-south1`).
-4. Select **Start in test mode** for development (or production mode with the rules below), and click **Enable**.
-
-### Step 3: Download your Service Account Private Key
-1. In the Firebase console, click the gear icon ⚙️ next to **Project Overview** in the left sidebar and choose **Project settings**.
+### Step 2: Download your Service Account Private Key
+1. In the Firebase console for `lifesaver-2df25`, click the gear icon ⚙️ next to **Project Overview** in the left sidebar and choose **Project settings**.
 2. Go to the **Service accounts** tab.
 3. Verify that **Python** is selected.
 4. Click the **Generate new private key** button, and confirm by clicking **Generate key**.

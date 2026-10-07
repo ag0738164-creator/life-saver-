@@ -272,14 +272,17 @@ def get_firebase_db(config=None, reset=False):
         return _firestore_client
 
     # Check for live Google Firebase Credentials
+    project_id = getattr(config, 'FIREBASE_PROJECT_ID', None) or Config.FIREBASE_PROJECT_ID
+    app_options = {'projectId': project_id} if project_id else None
+
     if cred_path and os.path.exists(cred_path):
         try:
             if not firebase_admin._apps:
                 cred = credentials.Certificate(cred_path)
-                firebase_admin.initialize_app(cred)
+                firebase_admin.initialize_app(cred, options=app_options)
             _firestore_client = firestore.client()
             _db_mode = "live_firebase"
-            print(f"[Firebase] Connected to Live Google Cloud Firebase Firestore via {cred_path}")
+            print(f"[Firebase] Connected to Live Google Cloud Firebase Firestore (Project: {project_id}) via {cred_path}")
             return _firestore_client
         except Exception as e:
             print(f"[Notice] Failed to connect to Live Firebase ({e}). Using Local Firestore fallback.")
@@ -288,10 +291,10 @@ def get_firebase_db(config=None, reset=False):
     if os.environ.get('GOOGLE_APPLICATION_CREDENTIALS') or os.environ.get('FIRESTORE_EMULATOR_HOST'):
         try:
             if not firebase_admin._apps:
-                firebase_admin.initialize_app()
+                firebase_admin.initialize_app(options=app_options)
             _firestore_client = firestore.client()
             _db_mode = "live_firebase"
-            print("[Firebase] Connected to Google Firebase Firestore via Application Default Credentials / Emulator")
+            print(f"[Firebase] Connected to Google Firebase Firestore (Project: {project_id}) via ADC / Emulator")
             return _firestore_client
         except Exception as e:
             print(f"[Notice] Live Firestore initialization returned: {e}")
