@@ -176,7 +176,13 @@ class LocalFirestoreDB:
                 else:
                     os.rename(temp_path, self.storage_path)
             except Exception as e:
-                print(f"Error persisting local Firestore data: {e}")
+                try:
+                    with open(self.storage_path, 'w', encoding='utf-8') as f:
+                        json.dump(self._data, f, indent=2, default=str)
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
+                except Exception:
+                    print(f"Error persisting local Firestore data: {e}")
 
     def collection(self, collection_name: str) -> LocalCollectionReference:
         return LocalCollectionReference(self, collection_name)
@@ -261,8 +267,15 @@ def get_firebase_db(config=None, reset=False):
     """
     global _firestore_client, _db_mode
     from config import Config
-    cred_path = getattr(config, 'FIREBASE_CREDENTIALS', None) or Config.FIREBASE_CREDENTIALS
-    local_path = getattr(config, 'LOCAL_FIRESTORE_PATH', None) or Config.LOCAL_FIRESTORE_PATH
+    if config and hasattr(config, 'FIREBASE_CREDENTIALS'):
+        cred_path = config.FIREBASE_CREDENTIALS
+    else:
+        cred_path = Config.FIREBASE_CREDENTIALS
+
+    if config and hasattr(config, 'LOCAL_FIRESTORE_PATH'):
+        local_path = config.LOCAL_FIRESTORE_PATH
+    else:
+        local_path = Config.LOCAL_FIRESTORE_PATH
 
     if _firestore_client is not None and not reset:
         # If client is LocalFirestoreDB, check if requested path matches

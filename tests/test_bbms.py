@@ -15,6 +15,7 @@ TEST_DB_PATH = os.path.join(os.path.dirname(__file__), 'test_firebase.json')
 
 class TestConfig(Config):
     TESTING = True
+    FIREBASE_CREDENTIALS = None
     LOCAL_FIRESTORE_PATH = TEST_DB_PATH
     WTF_CSRF_ENABLED = False
 
@@ -25,6 +26,8 @@ class BloodBankTestCase(unittest.TestCase):
                 os.remove(TEST_DB_PATH)
             except Exception:
                 pass
+        from app.firebase_db import get_firebase_db
+        get_firebase_db(TestConfig, reset=True)
         self.app = create_app(TestConfig)
         self.app_context = self.app.app_context()
         self.app_context.push()
