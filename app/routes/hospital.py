@@ -103,7 +103,7 @@ def history():
     return render_template('hospital/history.html', requests=requests, status_filter=status_filter)
 
 
-@hospital_bp.route('/receipt/<int:request_id>')
+@hospital_bp.route('/receipt/<request_id>')
 def receipt(request_id):
     req = BloodRequest.query.filter_by(id=request_id, hospital_id=current_user.id).first_or_404()
     return render_template('hospital/receipt.html', req=req)

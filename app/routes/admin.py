@@ -126,7 +126,7 @@ def requests_list():
     )
 
 
-@admin_bp.route('/requests/<int:request_id>/approve', methods=['POST'])
+@admin_bp.route('/requests/<request_id>/approve', methods=['POST'])
 def approve_request(request_id):
     req = BloodRequest.query.get_or_404(request_id)
     if req.status not in ('Pending', 'Rejected'):
@@ -160,7 +160,7 @@ def approve_request(request_id):
     return redirect(url_for('admin.requests_list'))
 
 
-@admin_bp.route('/requests/<int:request_id>/dispense', methods=['POST'])
+@admin_bp.route('/requests/<request_id>/dispense', methods=['POST'])
 def dispense_request(request_id):
     req = BloodRequest.query.get_or_404(request_id)
     if req.status != 'Approved':
@@ -173,7 +173,7 @@ def dispense_request(request_id):
     return redirect(url_for('admin.requests_list'))
 
 
-@admin_bp.route('/requests/<int:request_id>/reject', methods=['POST'])
+@admin_bp.route('/requests/<request_id>/reject', methods=['POST'])
 def reject_request(request_id):
     req = BloodRequest.query.get_or_404(request_id)
     reason = request.form.get('admin_notes', 'Request rejected due to stock or operational constraints.')
@@ -197,8 +197,8 @@ def reject_request(request_id):
 @admin_bp.route('/donations', methods=['GET', 'POST'])
 def donations_list():
     if request.method == 'POST':
-        donor_id = request.form.get('donor_id', type=int)
-        camp_id = request.form.get('camp_id', type=int) or None
+        donor_id = request.form.get('donor_id')
+        camp_id = request.form.get('camp_id') or None
         units_donated = request.form.get('units_donated', type=int) or 1
         donation_date_str = request.form.get('donation_date')
         notes = request.form.get('notes', '').strip()
@@ -398,7 +398,7 @@ def ai_predictions():
 # ---------------------------------------------------------
 # Advanced Feature 2: Location-Based Emergency Donor Matching
 # ---------------------------------------------------------
-@admin_bp.route('/emergency-match/<int:request_id>')
+@admin_bp.route('/emergency-match/<request_id>')
 def emergency_match(request_id):
     req = BloodRequest.query.get_or_404(request_id)
     target_city = req.hospital.city if req.hospital else None
@@ -425,10 +425,10 @@ def emergency_match(request_id):
     )
 
 
-@admin_bp.route('/emergency-broadcast/<int:request_id>', methods=['POST'])
+@admin_bp.route('/emergency-broadcast/<request_id>', methods=['POST'])
 def emergency_broadcast(request_id):
     req = BloodRequest.query.get_or_404(request_id)
-    selected_donor_ids = request.form.getlist('donor_ids', type=int)
+    selected_donor_ids = request.form.getlist('donor_ids')
 
     if not selected_donor_ids:
         flash('Please select at least one compatible donor to broadcast emergency alerts.', 'warning')
@@ -504,18 +504,18 @@ def qr_scanner():
     return render_template('admin/qr_scanner.html', unit=scanned_unit, search_query=search_query, hospitals=hospitals)
 
 
-@admin_bp.route('/blood-unit/<int:unit_id>/label')
+@admin_bp.route('/blood-unit/<unit_id>/label')
 def unit_label(unit_id):
     unit = BloodBagUnit.query.get_or_404(unit_id)
     qr_image = unit.get_qr_image()
     return render_template('admin/unit_label.html', unit=unit, qr_image=qr_image)
 
 
-@admin_bp.route('/blood-unit/<int:unit_id>/status', methods=['POST'])
+@admin_bp.route('/blood-unit/<unit_id>/status', methods=['POST'])
 def update_unit_status(unit_id):
     unit = BloodBagUnit.query.get_or_404(unit_id)
     new_status = request.form.get('status')
-    hospital_id = request.form.get('hospital_id', type=int)
+    hospital_id = request.form.get('hospital_id')
 
     if new_status in ('In Storage', 'Reserved', 'Issued', 'Quarantined', 'Discarded', 'Expired'):
         old_status = unit.status
@@ -535,7 +535,7 @@ def update_unit_status(unit_id):
 @admin_bp.route('/blood-unit/register', methods=['POST'])
 def register_blood_bag():
     blood_group = request.form.get('blood_group', '').strip().upper()
-    donor_id = request.form.get('donor_id', type=int) or None
+    donor_id = request.form.get('donor_id') or None
     component_type = request.form.get('component_type', 'Packed Red Blood Cells').strip()
     volume_ml = request.form.get('volume_ml', type=int) or 450
     shelf_days = request.form.get('shelf_days', type=int) or 35

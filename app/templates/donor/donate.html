@@ -57,7 +57,7 @@
                                     <select name="camp_id" class="form-select">
                                         <option value="">Central Blood Bank &amp; Transfusion Center</option>
                                         {% for c in upcoming_camps %}
-                                            <option value="{{ c.id }}" {% if request.args.get('camp_id')|int == c.id %}selected{% endif %}>
+                                            <option value="{{ c.id }}" {% if request.args.get('camp_id')|string == c.id|string %}selected{% endif %}>
                                                 Camp: {{ c.title }} ({{ c.city }} - {{ c.camp_date.strftime('%b %d') }})
                                             </option>
                                         {% endfor %}

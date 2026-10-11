@@ -52,7 +52,7 @@ def donate():
     ).order_by(DonationCamp.camp_date.asc()).all()
 
     if request.method == 'POST':
-        camp_id = request.form.get('camp_id', type=int) or None
+        camp_id = request.form.get('camp_id') or None
         donation_date_str = request.form.get('donation_date')
         notes = request.form.get('notes', '').strip()
 

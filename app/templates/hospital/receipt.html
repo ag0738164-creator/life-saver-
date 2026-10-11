@@ -29,7 +29,7 @@
                 <div class="text-muted small">National Healthcare Logistics Network &bull; 1800-BLOOD-LIFE</div>
             </div>
             <div class="text-end">
-                <div class="badge bg-light text-dark border fs-6 font-monospace mb-1">SLIP #BBMS-REQ-{{ "%05d"|format(req.id|int) }}</div>
+                <div class="badge bg-light text-dark border fs-6 font-monospace mb-1">SLIP #BBMS-REQ-{{ req.id }}</div>
                 <div class="text-muted small">Date: {{ req.created_at | format_datetime }}</div>
             </div>
         </div>

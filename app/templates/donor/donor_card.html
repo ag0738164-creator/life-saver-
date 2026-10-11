@@ -33,7 +33,7 @@
                 <div>
                     <h4 class="fw-bold text-dark mb-1">{{ current_user.name }}</h4>
                     <div class="text-muted small">
-                        <strong>Donor ID:</strong> BBMS-DON-{{ "%04d"|format(current_user.id|int) }}
+                        <strong>Donor ID:</strong> BBMS-DON-{{ current_user.id }}
                     </div>
                     <div class="text-muted small">
                         <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ current_user.city or 'Registered Donor' }}
